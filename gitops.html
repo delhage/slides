@@ -1,0 +1,258 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>reveal.js</title>
+
+		<link rel="stylesheet" href="css/reset.css">
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/solarized.css">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="lib/css/monokai.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+			  <section>
+                <h3>Using GitOps to deploy on
+                  Openshift/Kubernetes</h3>
+                <p>
+                  Manage your kubernetes cluster using git as a single
+                  source of thruth.
+                </p>
+                <p><small>Lars Delhage, Delivery Engineering and
+                Waseem Hassan, Container Platform Team</small></p>
+              </section>
+              
+              <section>
+                <h3>The four principles of GitOps</h3>
+                <ol>
+                  <li>The entire system is described declaratively
+                  <li>The desired system state is versioned in git
+                  <li>Approved changes in git can be automatically
+                    applied to the system
+                  <li>Software agents ensure correctness <strike>and alert on
+                    divergence</strike>
+                </ol>
+              </section>
+
+              <section>
+                <h3>Important!</h3>
+                <ul>
+                  <li>Does <b>not</b> replace RP and CI pipelines</li>
+                  <li>Only used for deployment of existing artifacts
+                    (docker images) created in earlier steps through
+                    GoCD, Jenkins, Drone or others</li>
+              </section>
+              
+              <section>
+                <section>
+                  <h3>GitOps at ATG</h3>
+                  <p>
+                    Currently we use GitOps in the Openshift clusters
+                    using a few kubernetes operators:
+                  </p>
+                  <ul>
+                    <li>Weaveworks flux
+                    <li>Weaveworks helm-operator
+                    <li>Bitnami Sealed Secrets
+                    <li>Stakater reloader
+                  </ul>
+                  <p>The git config repo is
+                  <a href="https://github.com/atgse/gitops-helm">https://github.com/atgse/gitops-helm</a></p>
+                </section>
+                <section>
+                  <h3>flux</h3>
+                  <p>Operator that monitors a git configuration repo and
+                    a docker registry.
+                  </p>
+                  <p>The configuration repo contains kubernetes
+                    manifests (or resource definitions) in YAML format
+                  </p>
+                  <p>Flux periodacilly syncs the config repo and applies
+                    any changes to the cluster (kubectl apply -f files)
+                  </p>
+                </section>
+                <section>
+                  <h3>Example</h3>
+                  <pre>./namespaces/test1-common-services-skeleton.yaml</pre>
+                  <pre><code class="hljs" data-trim contenteditable>
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: test1-common-services-skeleton
+---
+apiVersion: authorization.openshift.io/v1
+userNames: []
+groupNames:
+- system:authenticated
+kind: RoleBinding
+metadata:
+  name: authenticated-edit
+  namespace: test1-common-services-skeleton
+roleRef:
+  name: edit
+subjects:
+- kind: SystemGroup
+  name: system:authenticated
+                  </code></pre>
+                </section>
+                <section>
+                  <h3>flux-helm-operator</h3>
+                  <p>Kubernetes operator that detects resources of the
+                    type <code>HelmRelease</code> and apply those using <code>helm</code>.
+                  </p>
+                  <p>
+                    Not needed for <code>flux</code> but is a convenient way to
+                    manage deployments instead of managing individual
+                    kubernetes resources like service, route etc
+                  </p>
+                </section>
+                <section>
+                  <h3>Example</h3>
+                  <pre>./releases/common-services-skeleton/test1.yaml</pre>
+                  <pre><code class="hljs" data-trim contenteditable>
+---
+apiVersion: flux.weave.works/v1beta1
+kind: HelmRelease
+metadata:
+  name: test1-skeleton
+  namespace: test1-common-services-skeleton
+  annotations:
+    flux.weave.works/automated: "true"
+    flux.weave.works/tag.chart-image: semver:~2
+spec:
+  releaseName: test1-skeleton # MUST BE UNIQUE!
+  chart:
+    repository: https://nexus.hh.atg.se/repository/helm-internal/
+    name: atg-springboot
+    version: 0.1.18
+  values:
+    image: nexus.hh.atg.se:17000/releases/common-services-skeleton:2.24.0
+    replicaCount: 1
+    service:
+      scheme: https
+      port: 8443
+    route:
+      enabled: true
+      targetport: 8443
+      tlstermination: reencrypt
+    prometheus:
+      port: 8443
+      scheme: https
+    env:
+      VAULT_HOST: vault-vault.ocptest.hh.atg.se
+      VAULT_PORT: '443'
+                  </code></pre>
+                </section>
+                <section>
+                  <h3>Flux and helm</h3>
+                  <img src="flux-helm-gitops.png" />
+                </section>
+                <section>
+                  <h3>Sealed Secrets</h3>
+                  <p>One way to handle secrets used by our
+                  applications. Secrets are stored encrypted in git
+                  and can be decrypted in the cluster by the
+                  sealed-screts operator which in turn creates
+                  kubernetes secrets used by our apps.</p>
+                </section>
+                <section>
+                  <h3>Example</h3>
+                  <pre>./releases/common-services-skeleton/test1-secret.yaml</pre>
+                  <pre><code class="hljs" data-trim contenteditable>
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: common-services-skeleton
+  namespace: test1-common-services-skeleton
+  labels:
+    app: common-services-skeleton
+spec:
+  encryptedData:
+    JAVA_OPTIONS: AgBSdrzzPTTrBhf56M3ljLqP9HaHbo2AOaRec+sOR/i2rhxaCHsS5Yk+Gygw1B3XhiA9nYsSHlgZOzmOyLEcW1eAGXaUZC4GN+eXpkTlqx+0JGJ3aHwSkOeEa+iozQVyPHK7ldyiT7O8CJ+2Pg1E6fw2xcBsxS7duXDUUHZVC9eMdouYUzEFvrwv97U7AZVkLLqjeXSUaPDb7evHza7uJ292UG8tZ/1RBAPInt8GinvoBTAGrz+t17QkKLVqRxJrc3f675Pe3iEsAONdGtHor27V+L5eGp+40jbH0O76pdZvmgFJsSB5GHo9fuWptDq/awFDUvdxxtIouvjEeN3DRF7q39MuC4pcqPrI+gvhYYf1j9/iN2T6IIXjPu7JU2EuvPA7CoUwN+u1hyPEOTdyd6W3i/5CVFncjYY3eqRznAqgd+arShkQVzfe/s6ufdLn3yBqNB1EwNqN0VbRMaVsZD7fsKEi8Ly2gsGSM2dDI9nqN2vwc7l7pV1B0mbcrqYkDwepoDSPF7wuE5cH2SE8dCHcyYw+pRbsil61adhFH3FWJqrN8Nd7SyJRFJWFf1p2KUdAF5FRQE8+PolhSiwmonit2HisR8eTWxxnNlwQ5FMzuXmEweGvrMMGg5yaDfIlietqOPH/a2lKlaiMpieFiGlTnGSvv1+anp/T9n/urjW2xToVuDAx332FU/LBBF8moUCHX4dcCh7DBEGY5VUiSgfjxkHHrUGp0Jc7zmMJchbBdk/SSwX0CJlkXzSD0+9BZS5r12b0sZME34DxPFWko6PsdJa48YxhvkxJn6parSsdfY7H07l8zZj3Y6phARK5GYwEt+cH8qVJuvnJXcr/uR6hm9ADCGZ3O1c=
+    KEYSTORE_PASSWORD: AgCZVHZ+YjcwLq+V3fm/G8NpLqe0BF+zNZvZjP8OoLxNMW4ezNuSUIVhABB2cMfA+a8oLy4oHdgsyucZkj6bmcwHHIFRLccrhxi1Lf/TnglXYbOrzau1nSkiP3Gbb7Sj53UN7Bn7cvG91OL525Jjgmx/yWze6FtSIDqM6tpcs4ezpFcr8aQEnstPCxZS1zXRCSl+gGMigVL732/aHME48T5pzYrb65aR8mJle4IfRQk64O51gHedlA2H5QhrKCRhFdWIoa8b0LVX0IZPSWPMbgJlcVL/vhA886Srfs64UhRbYslEta2fCqEZc4fUB8BwAGFRGYxVmDpOxblhXvM3xDBwsU+8+G5V3D0BIjCluKD3yJ4ji+pIzgCDHqiW4BIzKqEfkx1DJVDHn9X3AwPF7gstokUcHcDME1lGqQirvwrY/4BkKNqB72OfSAuwIVBuxxhGAt/aaZwpCuT5bc1rLWzH143/tPfo8DaGq/gnFGqYnwORJsugcpv78fFOZm8At6XJ4Hi8KFHWCzMex4NZ3s+UibR0c4+1cIeSlQO+AIFpr51fpeTRaxuvjOO4s352C/zLGsgxzEmkTLLHIqaEamRD07VZRWzukjqzTP7xjy/xFgYxEckHhOpqXN8hIPhpQ9Ou0bs2hjBa6HGpbsq9pDH+gek2a1HK6hFP7nWn/dzsjz4zmXwZtrv4y/SNTP/XgN0igMFms2SHqw==
+                  </code></pre>
+                </section>
+                <section>
+                  <h3>Sealed Secrets</h3>
+                  <img src="flux-secrets.png" />
+                </section>
+                <section>
+                  <h3>reloader</h3>
+                  <p>Monitors Deployments, DeploymentConfigs,
+                  StatefulSets and DaemonSets for changes in
+                  Configmaps and/or Secrets used by them. If changed a
+                  rolling upgrade on the relevant deployment is done.</p>
+                </section>
+                <section>
+                  <h3>Required annotations</h3>
+                  <pre><code class="hljs" data-trim contenteditable>
+metadata:
+  annotations:
+    configmap.reloader.stakater.com/reload: "foo"
+    secret.reloader.stakater.com/reload: "bar"
+                  </code></pre>
+                </section>
+              </section>
+              <section>
+                <h3>Visualization</h3>
+                <a href="https://grafana-ocp-supporting-services.ocptest.hh.atg.se/?orgId=1">Grafana
+                Helm Release Dashboard</a>
+              </section>
+              <section>
+                <h3>Logging</h3>
+                <p>View logs
+                  in <a href="http://splunk.hh.atg.se:8000/en-US/app/search/search">splunk</a>
+                </p>
+                <p>
+                  Example search:
+                  <pre><code>index=openshift "kubernetes.namespace_name"="flux" "kubernetes.pod_name"="flux-helm*" tokenservices</code></pre>
+                </p>
+              </section>
+              <section>
+                <h3>ATG Documentation</h3>
+                <ul>
+                  <li><a href="https://github.com/atgse/gitops-helm/blob/master/docs/test-deploy.md">How
+                      to deploy to test</a>
+                  <li><a href="https://github.com/atgse/gitops-helm/blob/master/docs/prod-deploy.md">How
+                      to deploy to prod</a>
+                  <li><a href="https://github.com/atgse/gitops-helm/blob/master/README.md">
+                         (A bit outdated) general explanation of GitOps</a>
+                </ul>
+              </section>
+			</div>
+		</div>
+
+		<script src="js/reveal.js"></script>
+        
+		<script>
+          // More info about config & dependencies:
+          // - https://github.com/hakimel/reveal.js#configuration
+          // - https://github.com/hakimel/reveal.js#dependencies
+          Reveal.initialize({
+              hash: true,
+              dependencies: [
+                  { src: 'plugin/markdown/marked.js' },
+                  { src: 'plugin/markdown/markdown.js' },
+                  { src: 'plugin/notes/notes.js', async: true },
+                  { src: 'plugin/highlight/highlight.js', async: true }
+              ]
+          });
+        </script>
+	</body>
+</html>

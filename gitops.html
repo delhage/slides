@@ -51,7 +51,7 @@
               <section>
                 <h3>Important!</h3>
                 <ul>
-                  <li>Does <b>not</b> replace RP and CI pipelines</li>
+                  <li>Does <b>not</b> replace PR and CI pipelines</li>
                   <li>Only used for deployment of existing artifacts
                     (docker images) created in earlier steps through
                     GoCD, Jenkins, Drone or others</li>
@@ -65,10 +65,10 @@
                     using a few kubernetes operators:
                   </p>
                   <ul>
-                    <li>Weaveworks flux
-                    <li>Weaveworks helm-operator
-                    <li>Bitnami Sealed Secrets
-                    <li>Stakater reloader
+                    <li><a href="https://github.com/fluxcd/flux">Weaveworks flux</a>
+                    <li><a href="https://github.com/fluxcd/helm-operator"> Weaveworks helm-operator</a>
+                    <li><a href="https://github.com/bitnami-labs/sealed-secrets">Bitnami Sealed Secrets</a>
+                    <li><a href="https://github.com/stakater/Reloader">Stakater reloader</a>
                   </ul>
                   <p>The git config repo is
                   <a href="https://github.com/atgse/gitops-helm">https://github.com/atgse/gitops-helm</a></p>
@@ -212,7 +212,8 @@ metadata:
               <section>
                 <h3>Visualization</h3>
                 <a href="https://grafana-ocp-supporting-services.ocptest.hh.atg.se/?orgId=1">Grafana
-                Helm Release Dashboard</a>
+                  Helm Release Dashboard</a>
+                <img src="grafana-prod.png" />
               </section>
               <section>
                 <h3>Logging</h3>

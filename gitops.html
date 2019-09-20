@@ -167,7 +167,7 @@ spec:
                   <p>The way we have chosen to handle secrets used by our
                   applications (other possibilites exist). Secrets are stored encrypted in git
                   and can be decrypted in the cluster by the
-                  sealed-screts operator which in turn creates
+                  sealed-secrets operator which in turn creates
                   kubernetes secrets used by our apps.</p>
                 </section>
                 <section>
@@ -210,6 +210,24 @@ metadata:
                 </section>
               </section>
               <section>
+                <h3>Migration</h3>
+                <ul>
+                  <li>Create a PR with namespace and helmrelease definitions in
+                    gitops-helm. Migrate the necessary values from configs and secrets in ansible-ocp-gocd-setup
+                  <li>Pause the pipeline for that release in GoCD
+                  <li>Have the PR reviewed and merged
+                  <li>Monitor that the application is deployed
+                    correctly
+                </ul>
+                <h3>Cleanup</h3>
+                <ul>
+                  <li>Remove the pipeline from the
+                    application's <code>pipeline.gocd.yaml</code>
+                  <li>Remove the project,configmap and application
+                    configs and secrets from ansible-ocp-gocd-setup
+                </ul>
+              </section>
+              <section>
                 <h3>Visualization</h3>
                 <a href="https://grafana-ocp-supporting-services.ocptest.hh.atg.se/?orgId=1">Grafana
                   Helm Release Dashboard</a>
@@ -222,7 +240,7 @@ metadata:
                 </p>
                 <p>
                   Example search:
-                  <pre><code>index=openshift "kubernetes.namespace_name"="flux" "kubernetes.pod_name"="flux-helm*" tokenservices</code></pre>
+                  <pre><small>index=openshift "kubernetes.namespace_name"="flux" "kubernetes.pod_name"="flux-helm*" tokenservices</small></pre>
                 </p>
               </section>
               <section>

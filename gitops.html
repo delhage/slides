@@ -35,7 +35,28 @@
                 <p><small>Lars Delhage, Delivery Engineering and
                 Waseem Hassan, Container Platform Team</small></p>
               </section>
-              
+
+              <section>
+                <h3>Current state</h3>
+                <ul>
+                  <li>Openshift templates
+                    <p>Only used on first deploy. Changes to template
+                      does not reflect on deployed instances.
+                    </p></li>
+                  <li>GoCD templates
+                    <p>
+                      Manually configured, cumbersome.
+                    </p></li>
+                  <li>https://github.com/atgse/ansible-ocp-gocd-setup
+                    <p>
+                      Configuration of projects, app configs and
+                      secrets pushed out with ansible through various
+                      GoCD piplines. Problem to separate changes from
+                      different teams.
+                    </p></li>
+
+                </ul>
+              </section>
               <section>
                 <h3>The four principles of GitOps</h3>
                 <ol>
@@ -244,10 +265,11 @@ metadata:
                 </p>
               </section>
               <section>
-                <h3>Documentation</h3>
+                <h3>Resources</h3>
                 <ul>
                   <li><a href="https://developer.atg.se/continuous_delivery/gitops.html">Developer
-                  handbook, GitOps section</a>
+                      handbook, GitOps section</a>
+                  <li><a href="https://atgse.slack.com/messages/CKA8SF30F">#gitops</a> slack channel.
                 </ul>
               </section>
 			</div>

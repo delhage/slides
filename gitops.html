@@ -260,9 +260,12 @@ metadata:
                   in <a href="http://splunk.hh.atg.se:8000/en-US/app/search/search">splunk</a>
                 </p>
                 <p>
-                  Example search:
-                  <pre><small>index=openshift "kubernetes.namespace_name"="flux" "kubernetes.pod_name"="flux-helm*" tokenservices</small></pre>
-                </p>
+                  Example searches:
+                  <a href="http://splunk.hh.atg.se:8000/en-US/app/search/search?q=search%20index%3Dopenshift%20%22kubernetes.namespace_name%22%3D%22flux%22%20%22kubernetes.pod_name%22%3D%22flux-helm*%22%20tokenservices&sid=1569266741.2009663&display.page.search.mode=smart&dispatch.sample_ratio=1&earliest=%40d&latest=now"><pre><small>index=openshift "kubernetes.namespace_name"="flux" "kubernetes.pod_name"="flux-helm*" tokenservices</small></pre></a>
+                  <a href="http://splunk.hh.atg.se:8000/en-US/app/search/search?q=search%20index%3Dopenshift%20%22kubernetes.namespace_name%22%3D%22kube-system%22%20%22kubernetes.pod_name%22%3D%22sealed-secrets-*%22%20level%3Derr&sid=1569266938.2009680&display.page.search.mode=smart&dispatch.sample_ratio=1&earliest=%40d&latest=now"><pre><small>index=openshift "kubernetes.namespace_name"="kube-system" "kubernetes.pod_name"="sealed-secrets-*" level=err</small></pre></a>
+                  <a href="http://splunk.hh.atg.se:8000/en-US/app/search/search?q=search%20index%3Dopenshift%20%22kubernetes.namespace_name%22%3D%22flux%22%20%22kubernetes.pod_name%22%3D%22reloader-*%22&display.page.search.mode=smart&dispatch.sample_ratio=1&earliest=%40d&latest=now&sid=1569267043.2009696"><pre><small>index=openshift "kubernetes.namespace_name"="flux" "kubernetes.pod_name"="reloader-*"</small></pre></a>
+                  <a href="http://splunk.hh.atg.se:8000/en-US/app/search/search?q=search%20index%3Dopenshift%20%22kubernetes.namespace_name%22%3D%22flux%22%20%22kubernetes.pod_name%22%3D%22flux*%22&sid=1569267220.2009718&display.page.search.mode=smart&dispatch.sample_ratio=1&earliest=%40d&latest=now"><pre><small>index=openshift "kubernetes.namespace_name"="flux" "kubernetes.pod_name"="flux*"</small></pre></a>
+
               </section>
               <section>
                 <h3>Resources</h3>

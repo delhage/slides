@@ -132,6 +132,32 @@ subjects:
                   </code></pre>
                 </section>
                 <section>
+                  <h3>What is <code>helm</code>?</h3>
+                  <p>A templating system to deploy applications in
+                  Kubernetes. <code>helm</code> keeps track of state
+                  and changes to template and template parameters</p>
+                </section>
+                <section>
+                  <h3>ATG springboot</h3>
+                  <pre>
+atg-springboot/
+├── Chart.yaml
+├── NOTES.txt
+├── README.md
+├── templates
+│   ├── _helpers.tpl
+│   ├── configmap.yaml
+│   ├── deployment.yaml
+│   ├── external.yaml
+│   ├── headless.yaml
+│   ├── hpa.yaml
+│   ├── nodeport.yaml
+│   ├── route.yaml
+│   └── service.yaml
+└── values.yaml
+                  </pre>
+                </section>
+                <section>
                   <h3>flux-helm-operator</h3>
                   <ul>
                   <li class="fragment">Kubernetes operator that detects resources of the

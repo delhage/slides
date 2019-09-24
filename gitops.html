@@ -39,15 +39,16 @@
               <section>
                 <h3>Current state</h3>
                 <ul>
-                  <li>Openshift templates
+                  <li class="fragment">Openshift templates
                     <p>Only used on first deploy. Changes to template
-                      does not reflect on deployed instances.
+                      and/or template parameters
+                      do not reflect on deployed instances.
                     </p></li>
-                  <li>GoCD templates
+                  <li class="fragment">GoCD templates
                     <p>
                       Manually configured, cumbersome.
                     </p></li>
-                  <li>https://github.com/atgse/ansible-ocp-gocd-setup
+                  <li class="fragment">https://github.com/atgse/ansible-ocp-gocd-setup
                     <p>
                       Configuration of projects, app configs and
                       secrets pushed out with ansible through various
@@ -60,11 +61,11 @@
               <section>
                 <h3>The four principles of GitOps</h3>
                 <ol>
-                  <li>The entire system is described declaratively
-                  <li>The desired system state is versioned in git
-                  <li>Approved changes in git can be automatically
+                  <li class="fragment">The entire system is described declaratively
+                  <li class="fragment">The desired system state is versioned in git
+                  <li class="fragment">Approved changes in git can be automatically
                     applied to the system
-                  <li>Software agents ensure correctness <strike>and alert on
+                  <li class="fragment">Software agents ensure correctness <strike>and alert on
                     divergence</strike>
                 </ol>
               </section>
@@ -96,15 +97,14 @@
                 </section>
                 <section>
                   <h3>flux</h3>
-                  <p>Operator that monitors a git configuration repo and
-                    a docker registry.
-                  </p>
-                  <p>The configuration repo contains kubernetes
-                    manifests (or resource definitions) in YAML format
-                  </p>
-                  <p>Flux periodacilly syncs the config repo and applies
-                    any changes to the cluster (kubectl apply -f files)
-                  </p>
+                  <ul>
+                    <li class="fragment">Operator that monitors a git configuration repo and
+                      a docker registry.</li>
+                    <li class="fragment">The configuration repo contains kubernetes
+                      manifests (or resource definitions) in YAML format</li>
+                    <li class="fragment">Flux periodacilly syncs the config repo and applies
+                      any changes to the cluster (kubectl apply -f files)</li>
+                  </ul>
                 </section>
                 <section>
                   <h3>Example</h3>
@@ -133,14 +133,16 @@ subjects:
                 </section>
                 <section>
                   <h3>flux-helm-operator</h3>
-                  <p>Kubernetes operator that detects resources of the
-                    type <code>HelmRelease</code> and apply those using <code>helm</code>.
-                  </p>
-                  <p>
+                  <ul>
+                  <li class="fragment">Kubernetes operator that detects resources of the
+                    custom resource <code>HelmRelease</code> and applies those using <code>helm</code>.
+                  </li>
+                  <li class="fragment">
                     Not needed for <code>flux</code> but is a convenient way to
                     manage deployments instead of managing individual
                     kubernetes resources like service, route etc
-                  </p>
+                  </li>
+                  </ul>
                 </section>
                 <section>
                   <h3>Example</h3>
@@ -185,11 +187,14 @@ spec:
                 </section>
                 <section>
                   <h3>Sealed Secrets</h3>
-                  <p>The way we have chosen to handle secrets used by our
-                  applications (other possibilites exist). Secrets are stored encrypted in git
-                  and can be decrypted in the cluster by the
-                  sealed-secrets operator which in turn creates
-                  kubernetes secrets used by our apps.</p>
+                  <ul>
+                    <li>The way we have chosen to handle secrets used by our
+                      applications (other possibilites exist).
+                    <li>Secrets are stored encrypted in git
+                      and can be decrypted in the cluster by the
+                      sealed-secrets operator which in turn creates
+                      kubernetes secrets used by our apps.
+                  </ul>
                 </section>
                 <section>
                   <h3>Example</h3>
@@ -215,10 +220,13 @@ spec:
                 </section>
                 <section>
                   <h3>reloader</h3>
-                  <p>Monitors Deployments, DeploymentConfigs,
-                  StatefulSets and DaemonSets for changes in
-                  Configmaps and/or Secrets used by them. If changed a
-                  rolling upgrade on the relevant deployment is done.</p>
+                  <ul>
+                    <li>Monitors <code>Deployments</code>, <code>DeploymentConfigs</code>,
+                      <code>StatefulSets</code> and <code>DaemonSets</code> for changes in
+                      <code>Configmaps</code> and/or <code>Secrets</code> used by them.
+                    <li>If changed a
+                      rolling upgrade on the relevant deployment is done.
+                  </ul>
                 </section>
                 <section>
                   <h3>Required annotations</h3>
@@ -233,19 +241,21 @@ metadata:
               <section>
                 <h3>Migration</h3>
                 <ul>
-                  <li>Create a PR with namespace and helmrelease definitions in
-                    gitops-helm. Migrate the necessary values from configs and secrets in ansible-ocp-gocd-setup
-                  <li>Pause the pipeline for that release in GoCD
-                  <li>Have the PR reviewed and merged
-                  <li>Monitor that the application is deployed
+                  <li class="fragment">Create a PR with namespace and helmrelease definitions in the
+                    <code>gitops-helm</code> repo. Migrate the
+                    necessary values from configs and secrets in
+                    the <code>ansible-ocp-gocd-setup</code> repo.
+                  <li class="fragment">Pause the pipeline for that release in GoCD
+                  <li class="fragment">Have the PR reviewed and merged
+                  <li class="fragment">Monitor that the application is deployed
                     correctly
                 </ul>
-                <h3>Cleanup</h3>
+                <h3 class="fragment">Cleanup</h3>
                 <ul>
-                  <li>Remove the pipeline from the
+                  <li class="fragment">Remove the pipeline from the
                     application's <code>pipeline.gocd.yaml</code>
-                  <li>Remove the project,configmap and application
-                    configs and secrets from ansible-ocp-gocd-setup
+                  <li class="fragment">Remove the project,configmap and application
+                    configs and secrets from <code>ansible-ocp-gocd-setup</code>.
                 </ul>
               </section>
               <section>
@@ -261,10 +271,10 @@ metadata:
                 </p>
                 <p>
                   Example searches:
-                  <a href="http://splunk.hh.atg.se:8000/en-US/app/search/search?q=search%20index%3Dopenshift%20%22kubernetes.namespace_name%22%3D%22flux%22%20%22kubernetes.pod_name%22%3D%22flux-helm*%22%20tokenservices&sid=1569266741.2009663&display.page.search.mode=smart&dispatch.sample_ratio=1&earliest=%40d&latest=now"><pre><small>index=openshift "kubernetes.namespace_name"="flux" "kubernetes.pod_name"="flux-helm*" tokenservices</small></pre></a>
-                  <a href="http://splunk.hh.atg.se:8000/en-US/app/search/search?q=search%20index%3Dopenshift%20%22kubernetes.namespace_name%22%3D%22kube-system%22%20%22kubernetes.pod_name%22%3D%22sealed-secrets-*%22%20level%3Derr&sid=1569266938.2009680&display.page.search.mode=smart&dispatch.sample_ratio=1&earliest=%40d&latest=now"><pre><small>index=openshift "kubernetes.namespace_name"="kube-system" "kubernetes.pod_name"="sealed-secrets-*" level=err</small></pre></a>
-                  <a href="http://splunk.hh.atg.se:8000/en-US/app/search/search?q=search%20index%3Dopenshift%20%22kubernetes.namespace_name%22%3D%22flux%22%20%22kubernetes.pod_name%22%3D%22reloader-*%22&display.page.search.mode=smart&dispatch.sample_ratio=1&earliest=%40d&latest=now&sid=1569267043.2009696"><pre><small>index=openshift "kubernetes.namespace_name"="flux" "kubernetes.pod_name"="reloader-*"</small></pre></a>
-                  <a href="http://splunk.hh.atg.se:8000/en-US/app/search/search?q=search%20index%3Dopenshift%20%22kubernetes.namespace_name%22%3D%22flux%22%20%22kubernetes.pod_name%22%3D%22flux*%22&sid=1569267220.2009718&display.page.search.mode=smart&dispatch.sample_ratio=1&earliest=%40d&latest=now"><pre><small>index=openshift "kubernetes.namespace_name"="flux" "kubernetes.pod_name"="flux*"</small></pre></a>
+                  <a href="http://splunk.hh.atg.se:8000/en-US/app/search/search?q=search%20index%3Dopenshift%20%22kubernetes.namespace_name%22%3D%22flux%22%20%22kubernetes.pod_name%22%3D%22flux-helm*%22%20tokenservices&sid=1569266741.2009663&display.page.search.mode=smart&dispatch.sample_ratio=1&earliest=%40d&latest=now"><pre>index=openshift "kubernetes.namespace_name"="flux" "kubernetes.pod_name"="flux-helm*" tokenservices</pre></a>
+                  <a href="http://splunk.hh.atg.se:8000/en-US/app/search/search?q=search%20index%3Dopenshift%20%22kubernetes.namespace_name%22%3D%22kube-system%22%20%22kubernetes.pod_name%22%3D%22sealed-secrets-*%22%20level%3Derr&sid=1569266938.2009680&display.page.search.mode=smart&dispatch.sample_ratio=1&earliest=%40d&latest=now"><pre>index=openshift "kubernetes.namespace_name"="kube-system" "kubernetes.pod_name"="sealed-secrets-*" level=err</pre></a>
+                  <a href="http://splunk.hh.atg.se:8000/en-US/app/search/search?q=search%20index%3Dopenshift%20%22kubernetes.namespace_name%22%3D%22flux%22%20%22kubernetes.pod_name%22%3D%22reloader-*%22&display.page.search.mode=smart&dispatch.sample_ratio=1&earliest=%40d&latest=now&sid=1569267043.2009696"><pre>index=openshift "kubernetes.namespace_name"="flux" "kubernetes.pod_name"="reloader-*"</pre></a>
+                  <a href="http://splunk.hh.atg.se:8000/en-US/app/search/search?q=search%20index%3Dopenshift%20%22kubernetes.namespace_name%22%3D%22flux%22%20%22kubernetes.pod_name%22%3D%22flux*%22&sid=1569267220.2009718&display.page.search.mode=smart&dispatch.sample_ratio=1&earliest=%40d&latest=now"><pre>index=openshift "kubernetes.namespace_name"="flux" "kubernetes.pod_name"="flux*"</pre></a>
 
               </section>
               <section>
